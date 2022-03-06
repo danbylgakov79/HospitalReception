@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<head>
+    <style>
+
+        table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        td, th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #dddddd;
+        }
+    </style>
+</head>
+<body>
+
+<div class="btn-group" role="group" aria-label="Basic">
+    <a href="/" class="btn btn-outline-primary">Главная</a>
+    <button type="button" class="btn btn-outline-primary" onclick="document.location='ind.html'">Регистратура</button>
+    <button type="button" class="btn btn-outline-primary" onclick="document.location='doctor.html'">Врачи</button>
+    <button type="button" class="btn btn-outline-primary" onclick="document.location='laboratory.html'">Лаборатория</button>
+    <button type="button" class="btn btn-outline-primary" onclick="window.open('chat.html','_blank')"  >Чат</button>
+</div>
+<h2>Пациенты</h2>
+
+
+
+
+
+<form action="#">
+    <div class="row">
+        <!-- <div class="col">
+             <input type="text" class="form-control" placeholder="ID" aria-label="ID" id="id">
+         </div>-->
+        <div class="col">
+            <input type="text" class="form-control" placeholder="Имя" aria-label="Имя"  id="name">
+        </div>
+        <div class="col">
+            <input type="text" class="form-control" placeholder="Дата приема" aria-label="Дата  приема"  id="dataAppointment">
+        </div>
+
+    </div>
+
+    <button class="btn btn-outline-success" onclick="createPatient()">Добавить пациента</button>
+</form>
+
+<table class="table table-borderless"  id="patientList">
+
+</table>
+<script>
+
+
+    function deletePatient(id) {
+        var xhttp = new XMLHttpRequest();
+        xhttp.open("DELETE", "http://localhost:8080/patient/delete/" + id, true);
+        xhttp.send();
+        location.reload();
+    }
+
+
+    function createPatient() {
+        // var i = document.getElementById("id").value;
+        var nm = document.getElementById("name").value;
+        var da = document.getElementById("dataAppointment").value;
+
+
+        var xmlhttp = new XMLHttpRequest();   // new HttpRequest instance
+        xmlhttp.open("POST", "http://localhost:8080/patient/save");
+        xmlhttp.setRequestHeader("Content-Type", "application/json");
+        xmlhttp.send(JSON.stringify({name:nm,dataAppointment: da}));
+        location.reload();
+    }
+    String.prototype.replaceAt=function(index, char) {
+        var a = this.split("");
+        a[index] = char;
+        return a.join("");
+    }
+    function loadPatient(){
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                var patients = JSON.parse(this.responseText);
+                var html = '<tr>\n' +
+                    '        <th>ID</th>\n' +
+                    '        <th>Имя врача</th>\n' +
+                    '        <th>Дата приема</th>\n' +
+                    '    </tr>';
+                for (var i = 0; i < patients.length; i++) {
+                    var patient = patients[i];
+                    var strTime = patient.dataAppointment.toString();
+                    var tis=strTime.substring(0,16);
+                    tis=tis.replaceAt(10," ");
+                    console.log(tis)
+                    html = html + '<tr><td>' + patient.id + '</td>\n' +
+                        '        <td>' + patient.name + '</td>\n' +
+                        '        <td>' + tis + '</td>\n' +
+                        '        <td><button class="btn btn-outline-danger" onclick="deletePatient(' + patient.id + ')">Delete</button></td></tr>';
+                        console.log(patient.dataAppointment);
+                }
+                document.getElementById("patientList").innerHTML = html;
+            }
+        };
+
+        xhttp.open("GET", "http://localhost:8080/patient/findAll", true);
+        xhttp.send();
+
+    }
+    loadPatient();
+
+</script>
+</body>
+</html>

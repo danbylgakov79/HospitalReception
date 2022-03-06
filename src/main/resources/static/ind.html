@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<head>
+    <style>
+
+        table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        td, th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #dddddd;
+        }
+    </style>
+</head>
+<body>
+
+<div class="btn-group" role="group" aria-label="Basic">
+    <a href="/" class="btn btn-outline-primary">Главная</a>
+    <button type="button" class="btn btn-outline-primary" onclick="document.location='doctor.html'" >Врачи</button>
+    <button type="button" class="btn btn-outline-primary" onclick="document.location='laboratory.html'">Лаборатория</button>
+    <button type="button" class="btn btn-outline-primary" onclick="document.location='patient.html'">Пациенты</button>
+    <button type="button" class="btn btn-outline-primary" onclick="window.open('chat.html','_blank')"  >Чат</button>
+</div>
+<h2>Записи</h2>
+
+<input class="form-control" placeholder="ID врача" id="search_field">
+<button class="btn btn-outline-success" onclick="searchByDoctorID()">Найти записи врача по ID</button>
+
+
+
+<form action="#">
+    <div class="row">
+
+        <div class="col">
+            <input type="text" class="form-control" placeholder="Время начала приема" aria-label="Время начала приема"  id="timeStart">
+        </div>
+        <div class="col">
+            <input type="text" class="form-control" placeholder="Время конца приема" aria-label="Время конца приема"  id="timeEnd">
+        </div>
+        <div class="col">
+            <input type="text" class="form-control" placeholder="ID пациента" aria-label="ID пациента"  id="patientID">
+        </div>
+        <div class="col">
+            <input type="text" class="form-control" placeholder="ID врача" aria-label="ID врача"  id="doctorID">
+        </div>
+        <div class="col">
+            <input type="text" class="form-control" placeholder="ID лаборатории" aria-label="ID лаборатории"  id="labID">
+        </div>
+    </div>
+
+    <button class="btn btn-outline-success" onclick="createAppointment()">Создать запись</button>
+</form>
+
+<table class="table table-borderless"  id="appointmentsList">
+
+</table>
+<script>
+    function searchByDoctorID() {
+        var doctorID = document.getElementById("search_field").value;
+        var xhttp = new XMLHttpRequest();
+
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                var appointments = JSON.parse(this.responseText);
+                var html = '<tr>\n' +
+                    '        <th>ID</th>\n' +
+                    '        <th>Начало приема</th>\n' +
+                    '        <th>Конец приема</th>\n' +
+                    '        <th>ID пациента</th>\n' +
+                    '        <th>ID врача</th>\n' +
+                    '        <th>ID лаборатории</th>'+
+                    '    </tr>';
+
+                for (var i = 0; i < appointments.length; i++) {
+                    var appointment = appointments[i];
+                    console.log(appointment);
+                    var strTime = appointment.timeStart.toString();
+                    var tis=strTime.substring(0,16);
+                    tis=tis.replaceAt(10," ");
+                    var strTime2 = appointment.timeEnd.toString();
+                    var tie=strTime2.substring(0,16);
+                    tie=tie.replaceAt(10," ");
+                        html = html + '<tr><td>' + appointment.id + '</td>\n' +
+                            '        <td>' + tis + '</td>\n' +
+                            '        <td>' + tie +'</td>\n' +
+                            '        <td>' + appointment.patientID + '</td>' +
+                            '        <td>' + appointment.doctorID + '</td>' +
+                            '        <td>' + appointment.labID + '</td>' +
+                            '        <td><button class="btn btn-outline-danger" onclick="deleteAppointments(' + appointment.id + ')">Delete</button></td></tr>';
+
+
+                }
+                    document.getElementById("appointmentsList").innerHTML = html;
+
+            }
+        };
+        xhttp.open("GET", "http://localhost:8080/appointments/findAllByDoctorID?doctorID=" + doctorID, true);
+        xhttp.send();
+    }
+
+    function deleteAppointments(id) {
+        var xhttp = new XMLHttpRequest();
+        xhttp.open("DELETE", "http://localhost:8080/appointments/delete/" + id, true);
+        xhttp.send();
+        console.log("cheskda");
+    }
+
+
+    function createAppointment() {
+
+        var ts = document.getElementById("timeStart").value;
+        var te = document.getElementById("timeEnd").value;
+        var pid = document.getElementById("patientID").value;
+        var did = document.getElementById("doctorID").value;
+        var lid = document.getElementById("labID").value;
+        var strTime = ts.toString();
+        var tis=strTime.substring(0,16);
+        tis=tis.replaceAt(10,"T");
+        var strTime2 = te.toString();
+        var tie=strTime2.substring(0,16);
+        tie=tie.replaceAt(10,"T");
+        var xmlhttp = new XMLHttpRequest();   // new HttpRequest instance
+        xmlhttp.open("POST", "http://localhost:8080/appointments/save");
+        xmlhttp.setRequestHeader("Content-Type", "application/json");
+        xmlhttp.send(JSON.stringify({timeStart: tis, timeEnd: tie, patientID: pid, doctorID:did,labID:lid}));
+
+        loadUsers();
+    }
+    String.prototype.replaceAt=function(index, char) {
+        var a = this.split("");
+        a[index] = char;
+        return a.join("");
+    }
+    function loadUsers() {
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                var appointments = JSON.parse(this.responseText);
+                var html = '<tr>\n' +
+                    '        <th>ID</th>\n' +
+                    '        <th>Начало приема</th>\n' +
+                    '        <th>Конец приема</th>\n' +
+                    '        <th>ID пациента</th>\n' +
+                    '        <th>ID врача</th>\n' +
+                    '        <th>ID лаборатории</th>'+
+                    '    </tr>';
+                for (var i = 0; i < appointments.length; i++) {
+                    var appointment = appointments[i];
+                    console.log(appointment);
+
+                    var strTime = appointment.timeStart.toString();
+                    var tis=strTime.substring(0,16);
+                    tis=tis.replaceAt(10," ");
+                    var strTime2 = appointment.timeEnd.toString();
+                    var tie=strTime2.substring(0,16);
+                    tie=tie.replaceAt(10," ");
+                    html = html + '<tr><td>' + appointment.id + '</td>' +
+                        '        <td>' + tis + '</td>' +
+                        '        <td>' + tie + '</td>' +
+                        '        <td>' + appointment.patientID + '</td>' +
+                        '        <td>' + appointment.doctorID + '</td>' +
+                        '        <td>' + appointment.labID + '</td>' +
+
+                        '        <td><button class="btn btn-outline-danger" onclick="deleteAppointments(' + appointment.id + ')">Delete</button></td></tr>';
+
+                }
+                document.getElementById("appointmentsList").innerHTML = html;
+            }
+        };
+        xhttp.open("GET", "http://localhost:8080/appointments/findAll", true);
+        xhttp.send();
+    }
+
+    loadUsers();
+</script>
+</body>
+</html>

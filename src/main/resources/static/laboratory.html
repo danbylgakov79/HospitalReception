@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<head>
+    <style>
+
+        table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        td, th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #dddddd;
+        }
+    </style>
+</head>
+<body>
+
+<div class="btn-group" role="group" aria-label="Basic">
+    <a href="/" class="btn btn-outline-primary">Главная</a>
+    <button type="button" class="btn btn-outline-primary" onclick="document.location='ind.html'">Регистратура</button>
+    <button type="button" class="btn btn-outline-primary" onclick="document.location='doctor.html'">Врачи</button>
+    <button type="button" class="btn btn-outline-primary" onclick="document.location='patient.html'">Пациенты</button>
+    <button type="button" class="btn btn-outline-primary" onclick="window.open('chat.html','_blank')"  >Чат</button>
+</div>
+<h2>Лаборатории</h2>
+
+
+
+
+
+<form action="#">
+    <div class="row">
+        <!-- <div class="col">
+             <input type="text" class="form-control" placeholder="ID" aria-label="ID" id="id">
+         </div>-->
+        <div class="col">
+            <input type="text" class="form-control" placeholder="Название" aria-label="Название"  id="name">
+        </div>
+        <div class="col">
+            <input type="text" class="form-control" placeholder="Время начала работы" aria-label="Время начала работы"  id="timeAppStart">
+        </div>
+        <div class="col">
+            <input type="text" class="form-control" placeholder="Время конца работы" aria-label="Время конца работы"  id="timeAppEnd">
+        </div>
+    </div>
+
+    <button class="btn btn-outline-success" onclick="createLaboratory()">Добавить лабораторию</button>
+</form>
+
+<table class="table table-borderless"  id="laboratoryList">
+
+</table>
+<script>
+
+
+    function deleteLaboratory(id) {
+        var xhttp = new XMLHttpRequest();
+        xhttp.open("DELETE", "http://localhost:8080/laboratory/delete/" + id, true);
+        xhttp.send();
+        location.reload();
+    }
+
+
+    function createLaboratory() {
+        // var i = document.getElementById("id").value;
+        var nm = document.getElementById("name").value;
+        var ts = document.getElementById("timeAppStart").value;
+        var te = document.getElementById("timeAppEnd").value;
+
+        var xmlhttp = new XMLHttpRequest();   // new HttpRequest instance
+        xmlhttp.open("POST", "http://localhost:8080/laboratory/save");
+        xmlhttp.setRequestHeader("Content-Type", "application/json");
+        xmlhttp.send(JSON.stringify({name:nm,timeAppStart: ts, timeAppEnd:te}));
+        location.reload();
+    }
+    function loadLaboratory(){
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                var laboratories = JSON.parse(this.responseText);
+                var html = '<tr>\n' +
+                    '        <th>ID</th>\n' +
+                    '        <th>Название лаборатории</th>\n' +
+                    '        <th>Время начала работы</th>\n' +
+                    '        <th>Время конца работы</th>\n' +
+                    '    </tr>';
+                for (var i = 0; i < laboratories.length; i++) {
+                    var laboratory = laboratories[i];
+
+
+                    html = html + '<tr><td>' + laboratory.id + '</td>\n' +
+                        '        <td>' + laboratory.name + '</td>\n' +
+                        '        <td>' + laboratory.timeAppStart + '</td>\n' +
+                        '        <td>' + laboratory.timeAppEnd + '</td>' +
+                        '        <td><button class="btn btn-outline-danger" onclick="deleteLaboratory(' + laboratory.id + ')">Delete</button></td></tr>';
+
+                }
+                document.getElementById("laboratoryList").innerHTML = html;
+            }
+        };
+
+        xhttp.open("GET", "http://localhost:8080/laboratory/findAll", true);
+        xhttp.send();
+
+    }
+    loadLaboratory();
+
+</script>
+</body>
+</html>

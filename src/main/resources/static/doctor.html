@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<head>
+    <style>
+
+        table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        td, th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #dddddd;
+        }
+    </style>
+</head>
+<body>
+
+<div class="btn-group" role="group" aria-label="Basic">
+    <a href="/" class="btn btn-outline-primary">Главная</a>
+    <button type="button" class="btn btn-outline-primary" onclick="document.location='ind.html'">Регистратура</button>
+    <button type="button" class="btn btn-outline-primary" onclick="document.location='laboratory.html'">Лаборатория</button>
+    <button type="button" class="btn btn-outline-primary" onclick="document.location='patient.html'">Пациенты</button>
+    <button type="button" class="btn btn-outline-primary" onclick="window.open('chat.html','_blank')"  >Чат</button>
+</div>
+<h2>Врачи</h2>
+
+
+
+
+
+<form action="#">
+    <div class="row">
+       <!-- <div class="col">
+            <input type="text" class="form-control" placeholder="ID" aria-label="ID" id="id">
+        </div>-->
+        <div class="col">
+            <input type="text" class="form-control" placeholder="Имя" aria-label="Имя"  id="name">
+        </div>
+        <div class="col">
+            <input type="text" class="form-control" placeholder="Время начала приема" aria-label="Время начала приема"  id="timeAppStart">
+        </div>
+        <div class="col">
+            <input type="text" class="form-control" placeholder="Время конца приема" aria-label="Время конца приема"  id="timeAppEnd">
+        </div>
+    </div>
+
+    <button class="btn btn-outline-success" onclick="createDoctor()">Добавить Врача</button>
+</form>
+
+<table class="table table-borderless"  id="doctorsList">
+
+</table>
+<script>
+
+
+    function deleteDoctor(id) {
+        var xhttp = new XMLHttpRequest();
+        xhttp.open("DELETE", "http://localhost:8080/doctor/delete/" + id, true);
+        xhttp.send();
+        location.reload();
+    }
+
+
+    function createDoctor() {
+       // var i = document.getElementById("id").value;
+        var nm = document.getElementById("name").value;
+        var ts = document.getElementById("timeAppStart").value;
+        var te = document.getElementById("timeAppEnd").value;
+
+        var xmlhttp = new XMLHttpRequest();   // new HttpRequest instance
+        xmlhttp.open("POST", "http://localhost:8080/doctor/save");
+        xmlhttp.setRequestHeader("Content-Type", "application/json");
+        xmlhttp.send(JSON.stringify({name:nm,timeAppStart: ts, timeAppEnd:te}));
+        location.reload();
+    }
+    function loadDoctors(){
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                var doctors = JSON.parse(this.responseText);
+                var html = '<tr>\n' +
+                    '        <th>ID</th>\n' +
+                    '        <th>Имя врача</th>\n' +
+                    '        <th>Время начала приема</th>\n' +
+                    '        <th>Время конца приема</th>\n' +
+                    '    </tr>';
+                for (var i = 0; i < doctors.length; i++) {
+                    var doctor = doctors[i];
+                    console.log("checl"+doctor.id);
+
+                    html = html + '<tr><td>' + doctor.id + '</td>\n' +
+                        '        <td>' + doctor.name + '</td>\n' +
+                        '        <td>' + doctor.timeAppStart + '</td>\n' +
+                        '        <td>' + doctor.timeAppEnd + '</td>' +
+                        '        <td><button class="btn btn-outline-danger" onclick="deleteDoctor(' + doctor.id + ')">Delete</button></td></tr>';
+
+                }
+                document.getElementById("doctorsList").innerHTML = html;
+            }
+        };
+
+        xhttp.open("GET", "http://localhost:8080/doctor/findAll", true);
+        xhttp.send();
+
+    }
+loadDoctors();
+
+</script>
+</body>
+</html>
